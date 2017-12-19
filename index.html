@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0,minmum-scale=1.0,maxmum-scale=1.0,user-scalable=no">
+    <title>Document</title>
+</head>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+</style>
+<body>
+
+    <canvas id="canvas" style="background:#000;display: block;"></canvas>
+
+    <script>
+        // canvas自适应
+        var canvas = document.getElementById("canvas");
+        var w = canvas.width = window.innerWidth,
+            h = canvas.height = window.innerHeight;
+        window.onresize = function () {
+            w = canvas.width = window.innerWidth;
+            h = canvas.height = window.innerHeight;
+        }
+        
+        // 获取绘制区域对象
+        var ctx = canvas.getContext("2d");
+        console.log(ctx);
+
+        // 绘制水滴
+        // var y=0;
+        // setInterval(function(){
+        //     // 遮罩
+        //     ctx.fillStyle = "rgba(0,0,0,0.05)";
+        //     ctx.fillRect(0,0,w,h);
+        //     // 矩形
+        //     ctx.fillStyle = "#fff";
+        //     ctx.fillRect(300,y++,2,10);
+        // }, 1000/60);
+
+        // 水滴类
+        function Rain(){};
+        Rain.prototype = {
+            // 初始化雨滴参数
+            init: function () {
+                // 雨滴初始坐标
+                this.x = random(0,w);
+                this.y = 0;
+                // 雨滴随机下落速度
+                this.vy = random(4,5);
+                // 雨滴停止位置
+                this.l = random(0.8*h,0.9*h);
+                // 水圈初始半径
+                this.r = 1;
+                // 水圈增大的速度
+                this.vr = 1;
+                // 透明度
+                this.a = 1;
+                // 透明度变化系数
+                this.va = 0.96;
+
+            },
+            // 画雨滴
+            draw: function () {
+                // 当雨滴的高度小于雨滴停止位置时画雨滴
+                if (this.y < this.l) {
+                    // 雨滴
+                    //ctx.fillStyle = "rgba(0,255,255,1)";
+                    // 炫彩雨滴尾巴
+                    ctx.fillStyle = randomColor();
+                    ctx.fillRect(this.x,this.y,2,10);
+                }else{
+                    // 雨滴落地时画圆
+                    // 当圆的半径不小于100的时候停止扩散
+                    if (this.r < 100) {             
+                        ctx.strokeStyle = "rgba(0,255,255," + this.a + ")";
+                        // 每次提笔重画 
+                        ctx.beginPath(); 
+                        ctx.arc(this.x,this.y,this.r,0,Math.PI*2);
+                        ctx.stroke();
+                    }
+                    
+                }
+                // 更新参数
+                this.update();
+            },
+            // 参数更新
+            update: function () {
+                // 当雨滴的高度小于雨滴停止位置时y++
+                if (this.y < this.l) {
+                    this.y += this.vy;
+                }else{
+                    // 如果水圈的透明度大于0.03的时候半径一直增加
+                    if (this.a > 0.03) {
+                        this.r += this.vr;
+                        // 当水圈半径大于50的时候逐渐消失
+                        if (this.r > 50) {
+                            this.a *= this.va;
+                        }
+                    }else{
+                        // 水圈透明后重新初始化雨滴属性
+                        this.init();
+                    } 
+                }
+            }
+         }
+
+         // 随机函数
+         function random(min, max) {
+             return Math.random()*(max-min)+min;
+         }
+
+         // 实例化雨滴 
+        // var rain = new Rain();
+        // rain.init();
+        // setInterval(function(){
+        //     // 绘制透明层 作用: 1)让矩形变成雨滴的效果, 2)让水圈渐渐消失的效果;
+        //     ctx.fillStyle = "rgba(0,0,0,0.05)";
+        //     ctx.fillRect(0,0,w,h);
+        //     // 雨滴下落
+        //     rain.draw();
+        // }, 1000/60);
+
+        // 创建雨滴群
+        var rains = [];
+        var num = random(50,80);
+        for (var i=0;i<num;i++) {
+            // 实例化雨滴
+            setTimeout(createRain, 200*i);
+        }   
+        // 创建雨滴函数
+        function createRain(){
+            var rain = new Rain();
+            rain.init();
+            rains.push(rain);
+        }
+
+        // 绘制雨滴
+        // setInterval(moveRain, 1000/60);
+        function run() {      // 代替setInterval不会出现丢帧
+            moveRain();
+            setTimeout(run, 1000/60);
+        }
+        run();
+        // 移动雨滴
+        function moveRain() {
+            // 绘制透明层 作用: 1)让矩形变成雨滴的效果, 2)让水圈渐渐消失的效果;
+            ctx.fillStyle = "rgba(0,0,0,0.05)";
+            ctx.fillRect(0,0,w,h);
+            //ctx.clearRect(0,0,w,h)
+            for (var i=0;i<rains.length;i++) {  
+                // 雨滴下落
+                rains[i].draw();
+            }
+        }
+
+        /*十六进制颜色值的随机生成*/
+        function randomColor(){
+            var arrHex=["0","1","2","3","4","5","6","7","8","9","a","b","c","d"],
+                strHex="#",
+                index;
+                for(var i=0;i<6;i++){
+                    index=Math.round(Math.random()*15);
+                    strHex+=arrHex[index];
+                }
+            return strHex;
+        }
+    
+    </script>
+    
+</body>
+</html>
